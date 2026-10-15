@@ -1,0 +1,112 @@
+name: 'changelog.d'
+description: 'One file per change. Refuse a pull request that writes into CHANGELOG.md, adds a bad fragment, or adds none.'
+author: 'cagataycali'
+
+branding:
+  icon: 'layers'
+  color: 'orange'
+
+inputs:
+  base-ref:
+    description: 'Branch being merged into. Defaults to the pull request base, else main.'
+    required: false
+    default: ''
+  head:
+    description: 'Commit under test. Defaults to the pull request head (not the merge commit), else HEAD.'
+    required: false
+    default: ''
+  directory:
+    description: 'Fragment directory.'
+    required: false
+    default: 'changelog.d'
+  changelog:
+    description: 'The assembled log.'
+    required: false
+    default: 'CHANGELOG.md'
+  heading:
+    description: 'Section fragments fold into.'
+    required: false
+    default: '## [Unreleased]'
+  require:
+    description: 'A pull request that changes anything outside `ignore` must add a fragment.'
+    required: false
+    default: 'true'
+  skip-label:
+    description: 'Pull request label that waives `require` (never the other two checks).'
+    required: false
+    default: 'skip-changelog'
+  ignore:
+    description: 'Newline or comma separated globs that never need a fragment, e.g. "docs/**, *.md, .github/**".'
+    required: false
+    default: ''
+  match-number:
+    description: 'Fragments the PR adds must be numbered with this PR number.'
+    required: false
+    default: 'false'
+  placeholder-floor:
+    description: 'Numbers at or above this are placeholders (0 = off; 0000 and 9999 always are).'
+    required: false
+    default: '0'
+  working-directory:
+    description: 'Repository root.'
+    required: false
+    default: '.'
+  python:
+    description: 'Python interpreter (3.9+). Every GitHub-hosted runner already has python3.'
+    required: false
+    default: 'python3'
+
+outputs:
+  ok:
+    description: '"true" when the pull request passes.'
+    value: ${{ steps.gate.outputs.ok }}
+  fragments:
+    description: 'How many fragments the pull request adds or changes.'
+    value: ${{ steps.gate.outputs.fragments }}
+
+runs:
+  using: 'composite'
+  steps:
+    # The question is what the branch ADDED, which needs the merge base, which
+    # needs history. A shallow checkout is deepened rather than misjudged.
+    - name: Fetch history
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        BASE_REF: ${{ inputs.base-ref || github.base_ref || 'main' }}
+      run: |
+        if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+          git fetch --no-tags --quiet --unshallow origin || true
+        fi
+        git fetch --no-tags --quiet origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}" || true
+
+    # The validator runs from the ACTION's ref, never from the branch under
+    # test, so a branch cannot relax the gate in the same diff that trips it.
+    # Every input reaches the script as an environment variable, never as
+    # interpolated shell.
+    - name: Gate
+      id: gate
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        PYTHONPATH: ${{ github.action_path }}/src
+        PYTHONDONTWRITEBYTECODE: '1'
+        CD_PY: ${{ inputs.python }}
+        CD_BASE: ${{ inputs.base-ref || github.base_ref || 'main' }}
+        CD_HEAD: ${{ inputs.head || github.event.pull_request.head.sha || 'HEAD' }}
+        CD_DIR: ${{ inputs.directory }}
+        CD_LOG: ${{ inputs.changelog }}
+        CD_HEADING: ${{ inputs.heading }}
+        CD_REQUIRE: ${{ inputs.require }}
+        CD_SKIP: ${{ contains(github.event.pull_request.labels.*.name, inputs.skip-label) }}
+        CD_SKIP_LABEL: ${{ inputs.skip-label }}
+        CD_IGNORE: ${{ inputs.ignore }}
+        CD_MATCH: ${{ inputs.match-number }}
+        CD_FLOOR: ${{ inputs.placeholder-floor }}
+        CD_PR: ${{ github.event.pull_request.number }}
+      run: |
+        args=(--dir "$CD_DIR" --changelog "$CD_LOG" --heading "$CD_HEADING" --placeholder-floor "$CD_FLOOR"
+              gate --base-ref "$CD_BASE" --head "$CD_HEAD" --require "$CD_REQUIRE" --skip "$CD_SKIP"
+              --skip-label "$CD_SKIP_LABEL" --ignore "$CD_IGNORE" --match-number "$CD_MATCH")
+        if [ -n "$CD_PR" ]; then args+=(--pr-number "$CD_PR"); fi
+        "$CD_PY" -m changelog_d "${args[@]}"

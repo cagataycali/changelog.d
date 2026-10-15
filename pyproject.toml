@@ -1,0 +1,44 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "changelog-d"
+dynamic = ["version"]
+description = "One file per change. Parallel pull requests (and agents) never conflict on CHANGELOG.md again."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.9"
+authors = [{ name = "Cagatay Cali", email = "cagataycali@icloud.com" }]
+keywords = ["changelog", "news-fragments", "github-action", "agents", "ci"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Topic :: Software Development :: Version Control :: Git",
+  "Topic :: Software Development :: Quality Assurance",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6"]
+docs = ["mkdocs-material>=9.5"]
+
+[project.scripts]
+changelog-d = "changelog_d.cli:main"
+
+[project.urls]
+Homepage = "https://cagataycali.github.io/changelog.d/"
+Source = "https://github.com/cagataycali/changelog.d"
+
+[tool.hatch.version]
+path = "src/changelog_d/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/changelog_d"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py39"
