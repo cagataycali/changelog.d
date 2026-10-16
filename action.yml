@@ -8,7 +8,7 @@ branding:
 
 inputs:
   base-ref:
-    description: 'Branch being merged into. Defaults to the pull request base, else main.'
+    description: 'Branch or commit to compare against. Defaults to the pull request base; on a push, the commit before the push; else main.'
     required: false
     default: ''
   head:
@@ -67,18 +67,35 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    # The question is what the branch ADDED, which needs the merge base, which
-    # needs history. A shallow checkout is deepened rather than misjudged.
+    # The question is what the change ADDED, which needs a base to compare
+    # against, which needs history. A shallow checkout is deepened rather than
+    # misjudged. On a pull request the base is the target branch; on a push it
+    # is the commit the branch pointed at before the push, so a direct push to
+    # main is judged exactly like a pull request would have been.
     - name: Fetch history
+      id: base
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       env:
-        BASE_REF: ${{ inputs.base-ref || github.base_ref || 'main' }}
+        INPUT_BASE: ${{ inputs.base-ref }}
+        PR_BASE: ${{ github.base_ref }}
+        EVENT: ${{ github.event_name }}
+        BEFORE: ${{ github.event.before }}
       run: |
         if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
           git fetch --no-tags --quiet --unshallow origin || true
         fi
-        git fetch --no-tags --quiet origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}" || true
+        if [ -n "$INPUT_BASE" ]; then base="$INPUT_BASE"
+        elif [ -n "$PR_BASE" ]; then base="$PR_BASE"
+        elif [ "$EVENT" = "push" ] && [ -n "$BEFORE" ] && [ "${BEFORE//0/}" != "" ]; then base="$BEFORE"
+        else base="main"; fi
+        if [[ ${#base} -eq 40 && "$base" =~ ^[0-9a-f]+$ ]]; then
+          git cat-file -e "${base}^{commit}" 2>/dev/null || git fetch --no-tags --quiet origin "$base" || true
+        else
+          git fetch --no-tags --quiet origin "+refs/heads/${base}:refs/remotes/origin/${base}" || true
+        fi
+        echo "ref=$base" >> "$GITHUB_OUTPUT"
+        echo "changelog.d: comparing against $base ($EVENT)"
 
     # The validator runs from the ACTION's ref, never from the branch under
     # test, so a branch cannot relax the gate in the same diff that trips it.
@@ -92,7 +109,7 @@ runs:
         PYTHONPATH: ${{ github.action_path }}/src
         PYTHONDONTWRITEBYTECODE: '1'
         CD_PY: ${{ inputs.python }}
-        CD_BASE: ${{ inputs.base-ref || github.base_ref || 'main' }}
+        CD_BASE: ${{ steps.base.outputs.ref }}
         CD_HEAD: ${{ inputs.head || github.event.pull_request.head.sha || 'HEAD' }}
         CD_DIR: ${{ inputs.directory }}
         CD_LOG: ${{ inputs.changelog }}

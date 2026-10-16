@@ -110,7 +110,7 @@ pytest -q                 # tests replayed as real commits in real repos
 mkdocs serve              # the landing page
 ```
 
-This repo uses its own convention: every PR adds a fragment to [`changelog.d/`](changelog.d/).
+This repo follows its own rule with no exemptions: every pull request and every push to `main` must add a note to [`changelog.d/`](changelog.d/) (docs and workflow changes included), and `main` only accepts changes through pull requests that pass the `changelog.d` check. See [`.github/workflows/changelog.yml`](.github/workflows/changelog.yml).
 
 ## License
 
