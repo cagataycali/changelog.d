@@ -1,0 +1,27 @@
+name: changelog
+
+# This repo follows its own rule, with no exemptions for docs or workflows:
+# every pull request AND every push to main must record what it changed in
+# changelog.d/, unless the pull request is labelled skip-changelog.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  changelog:
+    name: changelog.d
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./        # the action exactly as a consumer runs it, from this commit
+        id: gate
+        with:
+          match-number: ${{ github.event_name == 'pull_request' }}
+      - run: echo "ok=${{ steps.gate.outputs.ok }} fragments=${{ steps.gate.outputs.fragments }}"

@@ -22,6 +22,8 @@ jobs:
             *.md
 ```
 
+Want direct pushes checked too? Add `push: { branches: [main] }` under `on:`. On a push, the check compares against the commit `main` pointed at before the push, so pushing straight to `main` without a note fails just like a pull request would.
+
 That's it. Every pull request now gets a **changelog** check that finishes in seconds. To make it required, turn it on in your branch protection settings.
 
 ## What it checks

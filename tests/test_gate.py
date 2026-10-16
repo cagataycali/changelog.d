@@ -185,3 +185,14 @@ def test_an_unreachable_base_is_loud(repo):
     with pytest.raises(gate.GitError):
         gate.run(base_ref="nope", repo=repo)
     assert main(["gate", "--base-ref", "nope", "--repo", str(repo), "--summary", ""]) == 2
+
+
+def test_a_push_is_judged_against_the_commit_before_it(repo):
+    """On a push the action passes ``github.event.before`` (a sha) as the base."""
+    before = git(repo, "rev-parse", "HEAD").strip()
+    write(repo, "src/app.py", "x = 5\n")
+    commit(repo, "pushed straight to main, no fragment")
+    assert gate.run(base_ref=before, repo=repo).missing
+    write(repo, "changelog.d/49-x-is-five.md", "### Changed: x is five\n")
+    commit(repo, "now with a fragment")
+    assert gate.run(base_ref=before, repo=repo).ok
