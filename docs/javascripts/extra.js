@@ -16,11 +16,11 @@
   /* --- the typed terminal on the home page --- */
   function terminal(el) {
     const script = [
-      ["cmd", 'changelog-d new 42 Fixed "the arm stops in 10 ms, not 400"'],
-      ["out", "changelog.d/42-the-arm-stops-in-10-ms-not-400.md"],
-      ["cmd", "changelog-d check"],
-      ["ok", "changelog fragments OK (3 pending)"],
-      ["cmd", "git push   # no rebase. no conflict. no re-review."],
+      ["cmd", 'changelog-d new 42 Fixed "the login button works on phones"'],
+      ["out", "changelog.d/42-the-login-button-works-on-phones.md"],
+      ["cmd", "git push"],
+      ["ok", "✓ changelog.d · 1 fragment, all valid"],
+      ["out", "# no conflict with the 9 other open pull requests"],
     ];
     const out = el.querySelector(".cd-term__out");
     if (reduced) {
@@ -63,13 +63,13 @@
     const code = el.querySelector("code");
     function render() {
       const n = parseInt(num.value, 10);
-      const s = sum.value.trim() || "what a user would notice";
+      const s = sum.value.trim() || "what changed, in plain words";
       const placeholder = !n || n === 0 || /^9{3,}$/.test(String(n));
       const name = "changelog.d/" + (num.value || "<pr>") + "-" + slugify(s) + ".md";
       file.innerHTML = placeholder
         ? '<span class="bad">✗ ' + name + " · use the real PR number, placeholders are refused</span>"
         : "✓ <b>" + name + "</b>";
-      code.textContent = "### " + cat.value + ": " + s + "\n\nOne short paragraph: what changed, and why a user would care.\n";
+      code.textContent = "### " + cat.value + ": " + s + "\n\nOne or two sentences a user would understand.\n";
     }
     [num, cat, sum].forEach((i) => i.addEventListener("input", render));
     render();
@@ -94,7 +94,6 @@
     document.querySelectorAll(".cd-term").forEach(terminal);
     document.querySelectorAll(".cd-maker").forEach(maker);
     observe(".cd-sign", "is-signed", { threshold: 0.6 });
-    observe(".cd-reveal", "is-in", { threshold: 0.15 });
   }
 
   if (window.document$ && typeof window.document$.subscribe === "function") {

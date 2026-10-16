@@ -9,18 +9,18 @@ hide:
 
 <div class="cd-hero" markdown>
 
-<span class="cd-eyebrow">a changelog convention + a GitHub Action</span>
+<span class="cd-eyebrow">a changelog habit + a GitHub check</span>
 
 <h1 class="cd-title">Every change gets <em>its own file.</em></h1>
 
 <p class="cd-lede">
-Ten pull requests open at once, maybe ten agents writing them. Each one adds a tiny
-file to <code>changelog.d/</code> instead of editing the same line of
-<code>CHANGELOG.md</code>. Nobody collides, nobody rebases, nobody waits for a second review.
+Most projects keep a <code>CHANGELOG.md</code>, and every pull request edits <b>the same few lines at the top</b>.
+So when one is merged, the others break. changelog.d fixes that: <b>each pull request adds its own small file</b>
+instead, and they're all gathered into the changelog when you release.
 </p>
 
 <div class="cd-cta">
-  <a class="cd-btn cd-btn--hot" href="action/">Add it to a repo →</a>
+  <a class="cd-btn cd-btn--hot" href="action/">Add it to your repo →</a>
   <a class="cd-btn" href="why/">Why it works</a>
   <a class="cd-btn" href="https://github.com/cagataycali/changelog.d">GitHub</a>
 </div>
@@ -29,58 +29,61 @@ file to <code>changelog.d/</code> instead of editing the same line of
 
 </div>
 
+## The problem, in one picture
+
 <div class="cd-duel">
   <figure class="cd-scene cd-scene--bad">
-    <figcaption>The usual way<small>three PRs, one line to append to</small></figcaption>
+    <figcaption>Without changelog.d<small>three pull requests, one shared line</small></figcaption>
     <div class="cd-stage">
       <span class="cd-card">#41</span><span class="cd-card">#42</span><span class="cd-card">#43</span>
       <div class="cd-boom">CONFLICT</div>
-      <div class="cd-target">CHANGELOG.md · ## [Unreleased]</div>
+      <div class="cd-target">CHANGELOG.md</div>
     </div>
-    <p class="cd-legend">The first merge wins. The other two go stale, get rebased and lose their approval.</p>
+    <p class="cd-legend">The first one merges. The other two now conflict and have to be fixed by hand.</p>
   </figure>
   <figure class="cd-scene cd-scene--good">
-    <figcaption>changelog.d<small>three PRs, three files</small></figcaption>
+    <figcaption>With changelog.d<small>three pull requests, three files</small></figcaption>
     <div class="cd-stage">
-      <div class="cd-slots"><span class="cd-slot">41-….md</span><span class="cd-slot">42-….md</span><span class="cd-slot">43-….md</span></div>
+      <div class="cd-slots"><span class="cd-slot">41.md</span><span class="cd-slot">42.md</span><span class="cd-slot">43.md</span></div>
       <span class="cd-card">#41</span><span class="cd-card">#42</span><span class="cd-card">#43</span>
       <div class="cd-target">release → CHANGELOG.md</div>
     </div>
-    <p class="cd-legend">Each one lands on its own. At release they are folded into the log in one go.</p>
+    <p class="cd-legend">Nobody touches the same file, so all three merge cleanly. They're combined at release.</p>
   </figure>
 </div>
 
-<div class="cd-stat cd-reveal">
-  <span class="cd-stat__n">2,487</span>
-  <span class="cd-stat__t">of 2,556 commits on <a href="https://github.com/strands-labs/robots">strands-labs/robots</a> in the 11 weeks after
-  the convention landed carried a fragment, while Strands Agents opened pull requests around the clock.
-  <b>Zero</b> edited the changelog by hand.</span>
+<div class="cd-aside" markdown>
+**Think of it like sticky notes.** Rather than everyone queuing to write on the top line of one whiteboard,
+each person drops a sticky note in a box. When it's time to release, you empty the box onto the board, newest first.
+</div>
+
+## How it works
+
+<div class="cd-steps">
+  <div class="cd-step"><b>Write a note</b><p>Your pull request adds one file, like <code>changelog.d/42-dark-mode.md</code>, saying what changed.</p></div>
+  <div class="cd-step"><b>The check reads it</b><p>A GitHub Action makes sure the note is there and is written correctly. It takes a few seconds.</p></div>
+  <div class="cd-step"><b>Release</b><p>Run <code>changelog-d apply</code>. Every note goes into <code>CHANGELOG.md</code> and the files are cleaned up.</p></div>
 </div>
 
 ## Try it
 
-Type a change. This is the whole file.
+Fill this in. The box below is the whole file you’d add.
 
 <div class="cd-maker">
   <div class="cd-maker__row">
-    <input name="number" type="number" min="1" value="42" aria-label="PR number">
-    <select name="category" aria-label="category">
-      <option>Fixed</option><option>Added</option><option>Changed</option><option>Removed</option>
-      <option>Security</option><option>Docs</option><option>Performance</option>
-    </select>
-    <input name="summary" type="text" value="a robot stops in 10 ms when you press the e-stop" aria-label="summary">
+    <div><label for="cd-n">PR number</label><input id="cd-n" name="number" type="number" min="1" value="42"></div>
+    <div><label for="cd-c">Kind</label><select id="cd-c" name="category">
+      <option>Added</option><option selected>Fixed</option><option>Changed</option><option>Removed</option>
+      <option>Security</option><option>Docs</option></select></div>
+    <div><label for="cd-s">What changed</label><input id="cd-s" name="summary" type="text" value="the login button works on phones"></div>
   </div>
   <div class="cd-maker__file"></div>
   <pre><code class="language-markdown"></code></pre>
 </div>
 
-## Three checks, one action
+## Add it to your repo
 
-<div class="cd-grid cd-reveal">
-  <div class="cd-tile"><span class="cd-n">01</span><b>Nothing written to the log</b><p>A new <code>###</code> entry under <code>[Unreleased]</code> is refused and named. Release PRs pass, entry by entry.</p></div>
-  <div class="cd-tile"><span class="cd-n">02</span><b>Every fragment is valid</b><p>Real PR number, one <code>###</code> heading, no forged <code>##</code> versions. Only your branch's own files are judged.</p></div>
-  <div class="cd-tile"><span class="cd-n">03</span><b>A fragment exists</b><p>Code changed? Then say what changed. Docs-only and labelled PRs can skip it.</p></div>
-</div>
+Create this one file, and every pull request is checked from then on:
 
 ```yaml title=".github/workflows/changelog.yml"
 on: pull_request
@@ -91,15 +94,19 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
       - uses: cagataycali/changelog.d@main
-        with:
-          ignore: "docs/**, *.md"
 ```
 
-Then at release time:
+When it's time to release:
 
 ```bash
 pip install git+https://github.com/cagataycali/changelog.d
-changelog-d apply      # folds every fragment into CHANGELOG.md and deletes them
+changelog-d apply
 ```
 
-That's it. [The fragment rules →](fragments.md) · [Teach your agents →](agents.md)
+<div class="cd-stat">
+  <span class="cd-stat__n">97%</span>
+  <p class="cd-stat__t">of commits on <a href="https://github.com/strands-labs/robots">strands-labs/robots</a> carried a note over
+  11 weeks (<b>2,487 of 2,556</b>), while AI agents opened pull requests day and night. Not one commit edited the changelog by hand.</p>
+</div>
+
+Next: [what a note looks like →](fragments.md) · [using it with AI agents →](agents.md)

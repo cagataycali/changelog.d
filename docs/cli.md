@@ -1,36 +1,31 @@
-# CLI
+# Command line
 
 ```bash
 pip install git+https://github.com/cagataycali/changelog.d
 ```
 
-It's pure Python 3.9+ with no dependencies. `python -m changelog_d` works too.
+It works with Python 3.9 or newer and has no dependencies.
 
-| Command | |
+| Command | What it does |
 |---|---|
-| `changelog-d check` | Validate every fragment. Writes nothing. Exits `1` on any problem. |
-| `changelog-d print` | Print the `[Unreleased]` body the fragments would become. |
-| `changelog-d apply` | Fold them into `CHANGELOG.md` and delete them. All or nothing. |
-| `changelog-d new <n> <Category> "<summary>" [--body …]` | Write `changelog.d/<n>-<slug>.md`. Refuses to overwrite. |
-| `changelog-d gate --base-ref main` | Run the PR gate locally, exactly as the action does. |
-
-Global flags: `--dir`, `--changelog`, `--heading`, `--placeholder-floor`.
+| `changelog-d new 42 Fixed "the login button works on phones"` | Creates a note for PR #42 |
+| `changelog-d check` | Checks every note. Changes nothing. |
+| `changelog-d print` | Shows what would be added to the changelog |
+| `changelog-d apply` | Adds the notes to `CHANGELOG.md` and deletes them |
+| `changelog-d gate` | Runs the same check as the GitHub Action, on your machine |
 
 ```console
-$ changelog-d new 42 Fixed "the arm stops in 10 ms, not 400"
-changelog.d/42-the-arm-stops-in-10-ms-not-400.md
+$ changelog-d new 42 Fixed "the login button works on phones"
+changelog.d/42-the-login-button-works-on-phones.md
 
 $ changelog-d check
 changelog fragments OK (3 pending)
 
-$ changelog-d gate --base-ref main --ignore "docs/**"
-## changelog.d
-
-Base `main` · merge base `5d29a6dfe1c2`
-
-✅ 1 fragment(s), all valid:
-
-- `changelog.d/42-the-arm-stops-in-10-ms-not-400.md`
+$ changelog-d apply
+assembled 3 fragment(s) into CHANGELOG.md:
+  43-faster-search.md
+  42-the-login-button-works-on-phones.md
+  41-dark-mode.md
 ```
 
-Exit codes: `0` means OK, `1` means there's a finding, and `2` means the check couldn't run (for example, an unknown base ref or a shallow clone with no merge base).
+Options for every command: `--dir` (the notes folder), `--changelog` (the changelog file) and `--heading` (the section to add to).

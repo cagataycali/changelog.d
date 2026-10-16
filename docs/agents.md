@@ -1,30 +1,30 @@
-# For agents
+# Using it with AI agents
 
-changelog.d was built for repos where agents write most of the PRs. Two lanes that never talk to each other can't collide on the changelog. If an agent forgets the fragment, the gate tells it the exact file to write, so the agent can fix it without a person stepping in.
+changelog.d started in a repo where AI agents opened most of the pull requests, often ten at once. They never had to coordinate over the changelog, because each one wrote its own file.
 
-## Paste this into `AGENTS.md`
+## Tell your agents
+
+Paste this into your `AGENTS.md` (or system prompt):
 
 ```markdown
 ## Changelog
 
-Every behavioural change adds ONE news fragment and never edits CHANGELOG.md:
+Every pull request that changes behaviour adds ONE file and never edits CHANGELOG.md:
 
-- Path: `changelog.d/<pr-number>-<slug>.md` (lowercase slug, words joined by `-`).
-  Open the PR first if you need the number; never merge a `0000-` placeholder.
-- Content: one `### <Category>: <summary>` heading, then a short paragraph a user
-  would understand. Put the measurement in the body.
-- One entry per file. No `## ` headings.
-- Check locally: `changelog-d check`. The `changelog` CI check enforces it.
-- Nothing user-visible changed? Ask for the `skip-changelog` label instead.
+- Path: `changelog.d/<pr-number>-<short-name>.md`, lowercase words with dashes.
+  Open the PR first to get its number.
+- Content: one line `### <Kind>: <what changed, in plain words>`, then one or two sentences.
+- Check it with `changelog-d check`.
+- Nothing a user would notice? Ask for the `skip-changelog` label instead.
 ```
 
-## The loop that works
+## The flow that works
 
-1. The agent opens a draft PR first, so it has a number.
-2. It runs `changelog-d new <number> <Category> "<summary>" --body "<proof>"`.
-3. It pushes. The gate passes, and no other lane touched that path.
-4. It rebases whenever it likes. Fragments never conflict, so an approval is never lost to the changelog.
+1. The agent opens a draft PR, so it knows its number.
+2. It runs `changelog-d new <number> Fixed "…"`.
+3. It pushes. The check passes and no other agent touched that file.
+4. It can rebase whenever it likes. The notes never conflict.
 
-## Why agents need the gate more than people do
+## Why agents especially need the check
 
-People eventually remember the convention. An agent starting from a fresh context only knows what its prompt says, and prompts drift. The gate makes the rule hold anyway: it names the exact file and heading, and the fix clears the error by itself, so an agent can follow the error message and turn the check green without a human.
+An agent only knows what's in its prompt, and prompts get edited. The check holds the rule even when the prompt forgets it. Its error message names the exact file to create, so an agent can read the error, fix it and go green without a person stepping in.

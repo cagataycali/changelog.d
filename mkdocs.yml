@@ -17,12 +17,16 @@ theme:
     repo: fontawesome/brands/github
   palette:
     - media: "(prefers-color-scheme: light)"
-      scheme: paper
+      scheme: default
+      primary: custom
+      accent: custom
       toggle:
         icon: material/weather-night
         name: Lights off
     - media: "(prefers-color-scheme: dark)"
-      scheme: ink
+      scheme: slate
+      primary: custom
+      accent: custom
       toggle:
         icon: material/weather-sunny
         name: Lights on
@@ -61,10 +65,10 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Why: why.md
-  - Fragments: fragments.md
+  - Writing a note: fragments.md
   - GitHub Action: action.md
-  - CLI: cli.md
-  - For agents: agents.md
+  - Command line: cli.md
+  - AI agents: agents.md
   - The story: story.md
 
 extra:
