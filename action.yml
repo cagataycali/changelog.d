@@ -1,4 +1,4 @@
-name: 'changelog.d'
+name: 'changelog-d'
 description: 'One file per change. Refuse a pull request that writes into CHANGELOG.md, adds a bad fragment, or adds none.'
 author: 'cagataycali'
 
